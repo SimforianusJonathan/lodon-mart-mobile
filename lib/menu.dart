@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lodon_mart/productentry_form.dart';
+import 'package:lodon_mart/left_drawer.dart';
 
 class ItemCard extends StatelessWidget {
   // Menampilkan kartu dengan ikon dan nama.
@@ -11,7 +13,7 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       // Menentukan warna latar belakang dari tema aplikasi.
-      color: item.color,
+      color: Theme.of(context).colorScheme.secondary,
       // Membuat sudut kartu melengkung.
       borderRadius: BorderRadius.circular(12),
 
@@ -22,7 +24,16 @@ class ItemCard extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(
-                content: Text("Kamu telah menekan tombol ${item.name}!")));
+                content: Text("You have clicked button ${item.name}!")));
+
+          // Navigate ke route yang sesuai (tergantung jenis tombol)
+          if (item.name == "Add Product") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProductEntryFormPage()),
+            );
+          }
         },
         // Container untuk menyimpan Icon dan Text
         child: Container(
@@ -40,8 +51,8 @@ class ItemCard extends StatelessWidget {
                 const Padding(padding: EdgeInsets.all(3)),
                 Text(
                   item.name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black),
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -89,9 +100,8 @@ class InfoCard extends StatelessWidget {
 class ItemHomepage {
   final String name;
   final IconData icon;
-  final Color color;
 
-  ItemHomepage(this.name, this.icon, this.color);
+  ItemHomepage(this.name, this.icon);
 }
 
 class MyHomePage extends StatelessWidget {
@@ -102,9 +112,9 @@ class MyHomePage extends StatelessWidget {
   final String className = 'PBP E'; // Kelas
 
   final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Daftar Produk", Icons.grid_view, Colors.red),
-    ItemHomepage("Tambah Produk", Icons.add, Colors.blue),
-    ItemHomepage("Logout", Icons.logout, Colors.yellow),
+    ItemHomepage("List of Product", Icons.grid_view),
+    ItemHomepage("Add Product", Icons.add),
+    ItemHomepage("Logout", Icons.logout),
   ];
 
   @override
@@ -113,7 +123,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       // AppBar adalah bagian atas halaman yang menampilkan judul.
       appBar: AppBar(
-        // Judul aplikasi "Mental Health Tracker" dengan teks putih dan tebal.
+        // Judul aplikasi "LODON MART" dengan teks putih dan tebal.
         title: const Text(
           'LODON MART',
           style: TextStyle(
@@ -123,7 +133,9 @@ class MyHomePage extends StatelessWidget {
         ),
         // Warna latar belakang AppBar diambil dari skema warna tema aplikasi.
         backgroundColor: Theme.of(context).colorScheme.primary,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      drawer: LeftDrawer(),
       // Body halaman dengan padding di sekelilingnya.
       body: Padding(
         padding: const EdgeInsets.all(16.0),

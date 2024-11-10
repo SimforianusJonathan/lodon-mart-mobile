@@ -149,3 +149,411 @@ intinya fungsi setState() penting digunakan agar terdapat perubahan real time se
 
 ## Const and Final
 penggunaan Final untuk mendifiniskan suatu variabel digunakan untuk menginisialisasi nilai pada suatu variabel dan dapat diinisialisasi saat runtime(aplikasi berjalan) jika data tersebut hanya tersedia pada saat aplikasi berjalan (e.g. tanggal real time menggunakan DateTime.now(), respons dari API). Sedangkan penggunaan Const untuk mendefinisikan suatu variabel yang nilainya sudah diketahui dan ditetapkan saat proses compiling kode (compile-time) jika value untuk variabel tersebut sudah diketahui atau dapat ditetapkan sebelum proses running aplikasi kita (e.g. ukuran,warna tetap[string, angka] ).
+
+# TUGAS 2
+
+## Membuat halaman form
+1. Buat halaman baru bernama "productentry_form,.dart".
+2. Membuat class baru bernama ProductEntryFormPage yang meng-extend stateful widget.
+3. Tambahkan constructor dengan isntance imutable dengan key ```const``` dan parameter ```{super.key}``` untuk mewakili parameter dari parent class (Stateful widget) :
+```dart
+const ProductEntryFormPage({super.key});
+```
+4. Override method ```createState()``` dari stateful widget dengan return type berupa State khusus milik class ```ProductEntryFormPage``` dan akan dikelola di class baru bernama ```_ProductEntryFormPageState()``` dengan kode sebagai berikut :
+```dart 
+@override
+  State<ProductEntryFormPage> createState() => _ProductEntryFormPageState();
+```
+5. Buat class ```_ProductEntryFormPageState``` yang meng-extend ```State<ProductFormEntryPage>```.
+6. Tambahkan kode untuk membuat form menggunakan:
+```dart
+final _formKey = GlobalKey<FormState>();
+```
+```GlobalKey``` digunakan untuk membuat kunci unik yang dapat diakses dari mana saja dalam widget tree, yang memungkinkan kita mengontrol widget dengan lebih spesifik, seperti mengakses atau memvalidasi form dari luar widget itu sendiri.
+7. Override method build dari dengan parameter BuildContext yang akan return suatu instans ```Scaffold``` yang memiliki atribut sebagai berikut :
+- appbar : Instan class ```Appbar``` yang atribut ```title``` nya diatur dengann nama 'Form Add Product' dengan atribut ```backgorundcolor``` dan ```foregroundcolor```  yang diatur sesuai selera.
+- body : Instans class ```Form``` dengan atribut ```key``` menggunakan variabel _formkey yang sudah dibuat di atas.
+
+### Step by Step Memakai minimal tiga elemen input, yaitu name, amount, description dengan validasi tiap input
+1. Buka halaman productentry_form.dart dan menambahkan beberapa variabel untuk Product yang ingin dibuat pada class ```_ProductEntryFormPageState``` :
+```dart
+...
+String _product_name = "";
+String _description = "";
+int _price = 0;
+int _amount = 0;
+...
+```
+
+2. Pada method build class tersebut, di bagian instansiasi ```Form()```, tambahkan atribut child berupa class ```SingleChildScrollView()``` yang memiliki atribut child class ```Column()``` yang juga memiliki atribut children berupa suatu list yang berisi beberapa class untuk menampilkan 4 elemen input (product name, product price, product amount / stock, dan product description).
+
+3. Pada list tersebut berisi beberapa class ```Padding()``` untuk tiap elemen input dengan atribut padding yang dikustomisasi dan atribut childnya berupa class ```TextFormField()``` yang memiliki atribut :
+- decoration = objek class ```InputDecoration()``` yang memiliki atribut 
+```hintText``` dan ```labelText``` sesuai nama elemen input yang pada bagian tersebut. Terdapat juga atribut border yang dikustomisasi menggunakan class ```OutlineInputBorder()```.
+- onChanged = yang digunakan untuk mengubah state sesuai dengan elemen input.
+Untuk product name dan product description :
+```dart
+onChanged: (String? value) { // parameter value berupa string / null
+  setState(() { // rebuild widget karena ada perubahan state
+    _product_name / _description = value!; // nilai value tidak boleh null
+  });
+}
+```
+Untuk product price dan product amount :
+```dart
+onChanged: (String? value) { // parameter value berupa string / null
+  setState(() { // rebuild widget karena ada perubahan state
+    _price / _amount  = int.tryParse(value!) ?? 0; // nilai value dikembalikan dalam bentuk integer bila valid dan 0 bila null
+    });
+}
+```
+- validator = atribut yang digunakan untuk memvalidasi nilai dari input.
+Untuk product name dan product description :
+```dart
+validator: (String? value) {
+  if (value == null || value.isEmpty) { // jika value null
+    return "Product Name / Product desc must not empty!";
+  } else if (value.length > 50) { // jika karakter lebih darii 50 char (300 char untuk description)
+    return "Product Name has maximum 50 characthers / Product description has maximum 300 characthers";
+  }
+  return null; // jika input valid, retun null
+}
+```
+Untuk product price dan product amount :
+```dart
+validator: (String? value) {
+if (value == null || value.isEmpty) { // jika value nya null
+  return "Product Price / amount must not empty!";
+}
+if (int.tryParse(value) == null) { // jika input bukan integer
+  return "Product Price / amount must be integer!";
+}
+if (int.tryParse(value)! <= 0) { // jika input integer berupa 0 atau bilangan negatif
+  return "Product Price / amount must be positive integer!";
+}
+
+return null; // jika input valid, retun null
+}
+```
+
+n.b. untuk bagian onChanged dan validator untuk 4 elemen input berbeda memiliki kode berbeda. Di atas digabung untuk contoh saja karena product name dan product desc. memiliki tipe data string dan product amount dan product price memiliki tipe data integer.
+
+### Step by setp menambahkan tombol save
+1. Buka halaman productentry_form.dart dan lihat bagian class ```_ProductEntryFormPageState```.
+2. Pada method build class tersebut, di bagian instansiasi ```Form()```, tambahkan atribut child berupa class ```SingleChildScrollView()``` yang memiliki atribut child class ```Column()``` yang juga memiliki atribut children berupa suatu list yang berisi beberapa class untuk menampilkan 4 elemen input (product name, product price, product amount / stock, dan product description).
+3.  Pada list tersebut, tambahkan objek baru brupa class ```Align()``` yang dikustomisasi atribut alignmentnya yang memiliki atribut child berupa objek class ```ElevatedButton()```  yang memiliki atribut :
+- style = dengan objek class ```ButtonStyle()``` yang memiliki atribut backgorundcolor yang dikustomisasi
+- child = objek class ```Text()``` bertuliskan "SAVE" yang diatur atribut style-nya dengan class ```TextStyle()```.
+
+### Step by Step Memunculkan data sesuai isi dari formulir yang diisi dalam sebuah pop-up setelah menekan tombol Save pada halaman formulir tambah item baru
+1. Buka halaman productentry_form.dart dan lihat bagian class ```_ProductEntryFormPageState```.
+2. Pada method build class tersebut, di bagian instansiasi ```Form()```, tambahkan atribut child berupa class ```SingleChildScrollView()``` yang memiliki atribut child class ```Column()``` yang juga memiliki atribut children berupa suatu list yang berisi beberapa class untuk menampilkan 4 elemen input (product name, product price, product amount / stock, dan product description).
+3.  Pada list tersebut, terdapat objek class ```Align()```  yang memiliki atribut child berupa objek class ```ElevatedButton()```.
+4. Tambahkan atribut pada elevated button yaitu atribut onPressed dengan validasi input :
+```dart
+...
+onPressed: () {
+  if (_formKey.currentState!.validate()) {
+  ...
+  }
+}
+...
+```
+5. Isi bagian if block dengan method ```showDialog()``` dengan atribut context di assign sama dengan objek ```BuildContext``` pada parameter method build yang diover-ride dan tambahkan atribut builder yang menggunakan parameter objek ```BuildContext``` juga dan akan me-return objek class ```AlertDialog()``` yang memiliki atribut sebagai berikut :
+- backgroundColor = kustomisasi dan preferensi
+- title = objek class ```Text()``` dengan tulisan seperti " form successfully added " yang bisa di-kustomisasi juga stylenya dengan objek class ```TextStyle()```.
+- content = objek class ```SingleChildScrollView()``` yang memiliki atribut child class ```Column()``` yang juga memiliki atribut children berupa suatu list yang berisi beberapa class untuk menampilkan 4 elemen input beserta keterangannya (product name, product price, product amount / stock, dan product description).
+- actions = berupa list yang berisi objek class ```TextButton()``` yang memiliki atribut child yang berupa objek class ```Text()``` dengan tulisan "OK" dan atribut onPressed sebagai berikut :
+```dart
+onPressed: () {
+  Navigator.pop(context); // menutup halaman widget pop-up saat ini kembali ke halaman form
+  _formKey.currentState!.reset(); // reset semua input form 
+},
+```
+6. List dari children class  ```Column()```  tersebut memiliki format :
+```dart
+...
+const Text(
+  'Product Name:', // bisa untuk product description , price, dan amount
+  style: TextStyle(
+    color: Colors
+        .white70, // Lighter white for labels
+    fontSize: 16,
+    fontWeight: FontWeight
+        .w600, // Semi-bold for labels
+  ),
+),
+Text(
+  /*
+  dapat diganti dengan :
+  '$_price' = product price
+  '$_amount' = product amount
+  _description = product description
+  */
+  _product_name,
+  style: const TextStyle(
+    color: Colors
+        .white, // White for product details
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+  ),
+),
+const SizedBox(
+    height: 8), // Space between sections
+
+  ...
+```
+
+n.b. untuk bagian variabel ```const``` class ```Text()```  untuk 4 elemen input berbeda memiliki kode berbeda. Di atas hanya diberikan hanya untuk satu elemen input untuk contoh saja karena product name,product desc., product amount, dan product price memiliki format untuk menampilkan data yang sama.
+
+
+## Step by Step mengarahkan pengguna ke halaman form tambah item baru ketika menekan tombol Tambah Item pada halaman utama
+1. Buka halaman menu.dart dan import halaman ```productentry_form.dart``` dengan contoh :
+```dart
+import 'package:lodon_mart/productentry_form.dart';
+```
+2. Pada bagian class ```ItemCard``` yang method build override-nya me return class ```Material``` yang memiliki atribut child berupa class ```Inkwell``` yang juga memiliki atribut ```onTap()```, tambahkan validasi routing sebagai berikut :
+```dart
+...
+// Navigate ke route yang sesuai (tergantung jenis tombol)
+if (item.name == "Add Product") {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+        builder: (context) => const ProductEntryFormPage()),
+  );
+}
+...
+```
+
+## Step by step membuat sebuah drawer pada aplikasi 
+1. Membuat file baru bernama left_drawer.dart
+2. import material.dart, halaman menu aplikasi (e.g. menu.dart), dan halaman form product (e.g. productentry_form.dart).
+3. Membuat class baru bernama ```LeftDrawer``` yang meng-extend StatelessWidget beserta dengan constructornya yang mengambil key dari parent class.
+4. Membuka halaman productentry_form.dart dan import file left_drawer.dart.
+5. Pada bagian class ```_ProductEntryFormPageState``` di bagian method build yang meng-return objek class ```Scaffold()```, tambahkan atribut drawer yang valuenya objek class ```LeftDrawer()``` yang kita buat pada halaman file left_drawer.dart.
+
+###  Step by step implementasi drawer minimal memiliki dua buah opsi, yaitu Halaman Utama dan Tambah Item.
+1. Melakukan over-ride method build dari class ```StatelessWidget``` yang akan return objek class ```Drawer()``` yang memiliki atribut child ```ListView()``` yang juga memiliki atribut Children yang berupa sebuah list yang berisi :
+- objek class ```DrawHeader()``` untuk membuat header dari aplikasi
+- 2 objek class ListTile untuk drawer di halaman utama dan untuk dibagian halaman form.
+2. Objek class ```DrawHeader()``` dengan atribut :
+- decoration yang berupa objek class ```BoxDecoration()``` yang bisa diatur atribut colornya.
+- child yang berupa objek class ```Column()``` yang memiliki atribut children berupa list juga yang beirisi 2 Objek class ```Text()``` yang diatur alignment nya dan stylenya dengan class ```TextAllign``` dan ```TextStyle()``` untuk menampilkan nama aplikasi "Lodon Mart" dan juga tagline toko "Shop in Mart, Don't worry.. It doesn't contain lard".
+
+### Step by step re-routing brawer ke halaman utama
+1. Buka halaman left_header.dart.
+2. Perhatikan over-ride method build dari class ```StatelessWidget``` yang akan return objek class ```Drawer()``` yang memiliki atribut child ```ListView()``` yang juga memiliki atribut Children yang berupa sebuah list.
+3. Pada list Children tersebut, tambahkan objek class ```ListTile()``` yang memiliki atribut :
+- leading = menampilkan ikon "home-outline" bawaan dari class ```Icon```.
+- title = menggunakan objek class ```Text()``` yang bertuliskan "Home Page".
+- onTap() = Untuk melakukan re-routing ke halaman utama saat widget bertuliskan "Home Page" ditekan dengan contoh kode sebagai berikut :
+```dart
+...
+onTap: () {
+  // // navigasi ke halaman baru dan menmbuang halaman saat ini dari "navigation stack"
+  Navigator.pushReplacement( 
+     // untuk mengetahui di posisi widget tree mana sekarang pada "navigation stack"
+    context,
+    // fungsi builder untuk membuat widget MyHomePage harus dibuat saat re-routing ssebagai destinasi di layar
+    MaterialPageRoute(
+      builder: (context) => MyHomePage(),
+    ));
+}
+...
+```
+
+### Step by step re-routing brawer ke halaman utama
+1. Buka halaman left_header.dart.
+2. Perhatikan over-ride method build dari class ```StatelessWidget``` yang akan return objek class ```Drawer()``` yang memiliki atribut child ```ListView()``` yang juga memiliki atribut Children yang berupa sebuah list.
+3. Pada list Children tersebut, tambahkan objek class ```ListTile()``` yang memiliki atribut :
+- leading = menampilkan ikon "add" bawaan dari class ```Icon```.
+- title = menggunakan objek class ```Text()``` yang bertuliskan "Add Product".
+- onTap() = Untuk melakukan re-routing ke halaman utama saat widget bertuliskan "Add Product" ditekan dengan contoh kode sebagai berikut :
+```dart
+...
+onTap: () {
+  // // navigasi ke halaman baru tanpa menmbuang halaman saat ini dari "navigation stack" dan menambahkan rute baru ke Top of "navigation stack"
+  Navigator.push( 
+     // untuk mengetahui di posisi widget tree mana sekarang pada "navigation stack"
+    context,
+    // fungsi builder untuk membuat widget ProductEntryFormPage harus dibuat saat re-routing sebagai destinasi di layar
+    MaterialPageRoute(
+      builder: (context) => ProductEntryFormPage(),
+    ));
+}
+...
+```
+
+## Const pada Flutter
+Key "const" pada flutter dapat digunakan untuk membuat objek yang bersifat konstan (immutable) saat program di-compile. key "const" sering digunakan pada widget dan nilai yang tidak akan berubah pada saat aplikasi berjalan. Contohnya seperti : objek class ```Text()``` pada aplikasi untuk menampilkan nama dari aplikasi maupun nama nama widget yang berfungsi sebaga button untuk re-routing ke halaman lain pada navigation stack, dan lainnya. Dalam hal ini objek class ```Text()``` yang memiliki nilai teretntu dan styling yang telah dibuat ditandai sebagai kosntanta.
+
+Keuntungan menggunakan key ```const``` :
+- Penegasan sifat immutable sehingga tidak terjadi kesalahan saat program dijalankan yang memungkinkan perubahan nilai pada variabel tertentu yang sudah diberi key ```const```.
+- Optimasi Mem&CompTime lewat penyimpanan sekali saja dalam memori sehingga program aplikasi dapat dikompilasi dengan lebih efisien.
+- Optimasi RunTime sehingga tidak perlu melakukan re-rendering / re-build pada widget yang kita buat saat tampilan pengguna diperbarui yang juga dapat menghemat run-time.
+
+Waktu yang tepat :
+- Melakukann assignment terhadap suatu nilai pada widget yang nilainya tetap / tidak berubah elama aplikasi berjalan dan paling penting sudah diketahui sebelum aplikasi berjalan (e.g. ikon, background / font color jika tidak ada dark/light mode, teks).
+- Membuat tampilan pengguna dengan komponen yang sama berulang kali sehingga dapat menghemat memori.
+
+Waktu tidak tepat :
+- Jika ada perubahan state yang mempengaruhi nilai pada variabel di widget yang kita buat (Widget yang meng-extend StatefulWidget yang mengimplementasikan method setState() pada kondisi tertentu). Sebaiknya menggunakan key ```final```.
+- Jika informasi / data yang didapat pada saat aplikasi berjalan (input dari user maupun data dari API) yang berarti belum diketahui saat proses kompilasi.
+
+##  Column dan Row pada Flutter
+Column dan Row merupakan widget widget tipe layout / bersifat mengatur tata letak dari widget widget di dalamnya. Masing-masing memiliki kegunaannya sendiri.
+
+### Column 
+Widget yang digunakan untuk membuat layout yang bersifat vertikal (atas ke bawah) yang berbentuk seperti suatu kolom. Biasanya digunakan untuk membuat formulir atau list dari suatu item. Untuk atribut / properti nya juga memiliki fungsi tersendiri. Seperti :
+- ```mainAxisAlignment``` = mengatur agar tata letaknya berada di tengah tengah dari sumbu y / vertikal (mid dari high & low).
+- ```crossAxisAlignment``` = mengatur agar tata letaknya berada di tengah tengah dari sumbu x / horizontal (mid dari left & right).
+- ```mainAxisSize``` = mengatur agar mengambil "minimum space" pada halaman aplikasi untuk memenuhi sumbu utama.
+
+implementasi pada program saya :
+```dart
+...
+child: Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Text(
+      'Product Name:',
+      style: TextStyle(
+        color: Colors
+            .white70, // Lighter white for labels
+        fontSize: 16,
+        fontWeight: FontWeight
+            .w600, // Semi-bold for labels
+      ),
+    ),
+    Text(
+      _product_name,
+      style: const TextStyle(
+        color: Colors
+            .white, // White for product details
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+      ),
+    ),
+```
+Untuk menampilkan keterangan "product name" dan kontennya di bagian bawah keterangan (secara vertikal) emnggunakan class ```Column```.
+
+### Row 
+Widget yang digunakan untuk membuat layout yang bersifat horizontal (kiri ke kanan) yang berbentuk seperti suatu baris. Biasanya digunakan untuk membuat suatu informasi berderet seperti widget untuk navigation bar, menampilkan ikon/ button dalam satu baris, dan lainnya. Untuk atribut / properti nya juga memiliki fungsi tersendiri. Seperti :
+- ```mainAxisAlignment``` = mengatur agar tata letaknya berada di tengah tengah dari sumbu x / horizontal (mid dari left & right).
+- ```crossAxisAlignment``` = mengatur agar tata letaknya berada di tengah tengah dari sumbu y / vertikal (mid dari high & low).
+- ```mainAxisSize``` = mengatur agar mengambil "minimum space" pada halaman aplikasi untuk memenuhi sumbu utama.
+
+implementasi pada program saya :
+```dart
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    InfoCard(title: 'NPM', content: npm),
+    InfoCard(title: 'Name', content: name),
+    InfoCard(title: 'Class', content: className),
+  ],
+),
+```
+Untuk menampilkan infocard developer dari aplikasi dalam satu baris terdiri dari 3 card.
+
+## Eleman Input Flutter
+Pada program lodon mart, saya menggunakan hanya sedikit elemen input flutter untuk meminta data dari user. Elemen input yang digunakan antara lain :
+- TextFormField = untuk setiap field pada form (name, price, amount, description), diterima lewat TextFormField serta telah dilakukan validasi untuk panjang maksimum input untuk tipe data String serta nominal minimum untuk tipe data integer.
+- Elevated Button = digunakan untuk menyimpan data yang ada di bagian bawah semua field untuk input yang jika di tap akan menyimpan produk beserta dengan informasi yang ditampilkan secara pop up .
+
+Elemen input yang belum digunakan pada program lodon mart ini :
+- Switch = memberikan opsi on/off maupun aktif/non-aktif pada tipe input yang diberikan.
+- DropdownButtonFormField = memberikan opsi yang terbatas dalam bentuk drpdown (e.g. untuk kategori yang terbatas, atau stock yang masih tersedia).
+- RadioListTile / Radio = memberikan pilihan tunggal dari beberapa opsi yang diberikan dalam bentuk radio type input (e.g. bisa untuk kategori terbatas juga, opsi status sudah / belum, jenis kelamin, dan lainnya).
+- DatePicker = memebrikan opsi memilih tanggal bawaan dari flutter.
+- CheckboxListTile / CheckBox = memberikan pilihan Y/N berupa boolean.
+- Slider = memberikan input numerik dengan range biasanya untuk suatu tipe data elemen input yang memiliki range secara numerik.
+
+## Tema (theme) dalam aplikasi Flutter agar aplikasi yang dibuat konsisten
+Sampai sekarang, tema yang telah saya berikan kepada aplikasi lodon mart ini baru berdasar lewat tema warna dari aplikasi.
+Berikut cuplikan pada bagian file ```main.dart``` :
+```dart
+...
+colorScheme: ColorScheme.fromSeed(
+  seedColor: const Color.fromARGB(255, 16, 23, 40),
+).copyWith(
+  primary: const Color.fromARGB(255, 16, 23, 40),
+  // secondary: const Color.fromARGB(255, 22, 32, 55),
+  secondary: const Color.fromARGB(255, 25, 37, 65),
+)),
+...
+```
+Saya melakukan implementasi pemberian tema pada aplikasi lodon mart dengan memberikan atribut colorScheme pada class ```myApp()``` di file ```main.dart``` dengan kustomisasi warna untuk primary dan secondary yang saya terapkan pada berbagai widget yang ada di aplikasi saya seperti :
+
+class ```ItemCard``` pada file ```menu.dart``` untuk memberikan warna widget dengan secondary (background dari item infocard):
+```dart
+...
+Widget build(BuildContext context) {
+  return Material(
+    // Menentukan warna latar belakang dari tema aplikasi.
+    color: Theme.of(context).colorScheme.secondary,
+  ...)
+  ...}
+```
+
+class ```MyHomePage()``` pada file ```menu.dart```  untuk memberikan warna widget dengan primary (background tulisan aplikasi) :
+```dart
+...
+appBar: AppBar(
+  // Judul aplikasi "LODON MART" dengan teks putih dan tebal.
+  title: const Text(
+    'LODON MART',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+  // Warna latar belakang AppBar diambil dari skema warna tema aplikasi.
+  backgroundColor: Theme.of(context).colorScheme.primary,
+  iconTheme: const IconThemeData(color: Colors.white),
+),
+...
+```
+
+class ```LeftDrawer()``` pada file ```left_drawer.dart``` untuk memberikan warna widget dengan primary (background drawer) :
+```dart
+```dart
+...
+DrawerHeader(
+decoration: BoxDecoration(
+    color: Theme.of(context).colorScheme.primary,
+  ),
+...)
+```
+
+class ```_ProductEntryFormPageState``` pda file ```productentry_form.dart``` untuk memberikan warna widget dengan primary dan secondary (pop up dan tombol save) :
+```dart
+Align(
+  alignment: Alignment.bottomCenter,
+  child: Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: ElevatedButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(
+            Theme.of(context).colorScheme.secondary),
+      ),
+      onPressed: () {
+        if (_formKey.currentState!.validate()) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .secondary, ...)
+                  ...}
+                ...)
+              ...}
+            ...}
+           ...)
+         ...)
+        ...)
+```
+
+Dengan mengaplikasikan berbagai background warna dari properti colorScheme (tema aplikasi sementara saat ini) yang ada pada file ```main.dart``` untuk beberapa widget yang ada di aplikasi saya di berbagai file, membantu saya untuk tetap menjaga konsistensi dari tema yang diimplementasikan pada aplikasi lodon mart. Jika ada tambahan tema baik warna maupun animasi pada tiap widget yang akan terjadi bila dilakukan suatu trigger, akan saya terapkan juga pada beberapa wiidget yang bersambungan dan jika perlu pada seluruh widget dengan fungsionalitas sama di aplikasi saya untuk tetap menjaga konsistensi dari aplikasi saya.
