@@ -557,3 +557,12 @@ Align(
 ```
 
 Dengan mengaplikasikan berbagai background warna dari properti colorScheme (tema aplikasi sementara saat ini) yang ada pada file ```main.dart``` untuk beberapa widget yang ada di aplikasi saya di berbagai file, membantu saya untuk tetap menjaga konsistensi dari tema yang diimplementasikan pada aplikasi lodon mart. Jika ada tambahan tema baik warna maupun animasi pada tiap widget yang akan terjadi bila dilakukan suatu trigger, akan saya terapkan juga pada beberapa wiidget yang bersambungan dan jika perlu pada seluruh widget dengan fungsionalitas sama di aplikasi saya untuk tetap menjaga konsistensi dari aplikasi saya.
+
+## Menangani navigasi dalam aplikasi dengan banyak halaman pada Flutter
+Navigator dalam Flutter memiliki beberapa metode penting, termasuk Navigator.push, Navigator.pop, dan Navigator.pushReplacement, yang sering digunakan dalam tugas atau tutorial.
+
+Navigator.push() berfungsi menambahkan route baru ke dalam stack yang dikelola oleh Navigator. Metode ini digunakan ketika ingin membuka halaman baru dan menambahkannya di puncak stack, memungkinkan pengguna untuk menekan tombol kembali guna kembali ke halaman sebelumnya.
+
+Navigator.pop() berfungsi untuk menghapus route yang sedang ditampilkan, mengembalikan pengguna ke halaman di bawahnya dalam stack (biasanya halaman sebelumnya).
+
+Navigator.pushReplacement() mengganti route saat ini dengan route baru tanpa menambahkannya ke dalam stack, sehingga pengguna tidak bisa kembali ke halaman sebelumnya. Metode ini menghapus route yang sedang ditampilkan dan langsung menggantinya dengan halaman baru yang telah ditentukan.
