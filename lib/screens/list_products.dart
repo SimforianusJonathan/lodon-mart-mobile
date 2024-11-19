@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lodon_mart/widgets/left_drawer.dart';
 import 'package:lodon_mart/models/product_entry.dart';
+import 'package:lodon_mart/screens/product_details.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -55,7 +56,17 @@ class _ProductEntryPageState extends State<ProductEntryPage> {
             } else {
               return ListView.builder(
                 itemCount: snapshot.data!.length,
-                itemBuilder: (_, index) => Container(
+                itemBuilder: (_, index) =>  GestureDetector(
+                  onTap: () {
+                    // Navigasi ke halaman detail produk dengan mengirimkan data produk
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailPage(product: snapshot.data![index]),
+                      ),
+                    );
+                  },
+                  child : Container(
                   margin:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   padding: const EdgeInsets.all(20.0),
@@ -76,6 +87,7 @@ class _ProductEntryPageState extends State<ProductEntryPage> {
                       Text("${snapshot.data![index].fields.description}")
                     ],
                   ),
+                ),
                 ),
               );
             }

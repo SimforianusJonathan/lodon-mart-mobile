@@ -312,7 +312,7 @@ n.b. untuk bagian variabel ```const``` class ```Text()```  untuk 4 elemen input 
 ```dart
 import 'package:lodon_mart/productentry_form.dart';
 ```
-2. Pada bagian class ```ItemCard``` yang method build override-nya me return class ```Material``` yang memiliki atribut child berupa class ```Inkwell``` yang juga memiliki atribut ```onTap()```, tambahkan validasi routing sebagai berikut :
+2. Pada bagian class ```ItemCard``` yang method build override-nya me return class ```Material``` yang memiliki atribut child berupa class ```Inkwell``` yang juga memiliki atribut ```onTap()```, tambahkan  :
 ```dart
 ...
 // Navigate ke route yang sesuai (tergantung jenis tombol)
@@ -566,3 +566,343 @@ Navigator.push() berfungsi menambahkan route baru ke dalam stack yang dikelola o
 Navigator.pop() berfungsi untuk menghapus route yang sedang ditampilkan, mengembalikan pengguna ke halaman di bawahnya dalam stack (biasanya halaman sebelumnya).
 
 Navigator.pushReplacement() mengganti route saat ini dengan route baru tanpa menambahkannya ke dalam stack, sehingga pengguna tidak bisa kembali ke halaman sebelumnya. Metode ini menghapus route yang sedang ditampilkan dan langsung menggantinya dengan halaman baru yang telah ditentukan.
+
+# TUGAS 3
+
+## Step by step memastikan deployment tugas django berjalan dengan baik
+1. Cek di localhsost apakah proyek django masih berjalan dengan baik sampai di tugas terakhir untuk proyek web.
+2. Memastikan di link pws bahwa proyek django masih berjalan dengan baik sampai di tugas terakhir untuk proyek web.
+3. pada root direktori aplikasi dart lakukan command :
+```
+flutter pub add provider
+flutter pub add pbp_django_auth
+```
+4. membuat aplikasi baru
+```
+django-admin startapp authentication
+```
+5. pada proyek django, tambahkan ```corsheaders``` dan ```authentication``` di bagian installed apps dan ```corsheaders.middleware.CorsMiddleware``` pada bagian middleware dan juga :
+```
+...
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+...
+```
+di file settings.py direktori lodon_mart (bukan root).
+
+## Step by step Mengintegrasikan sistem autentikasi Django dengan proyek tugas Flutter
+
+### Step by step implementasi fitur registrasi akun 
+1. Buatlah file ```registration.dart``` pada subdirektori ```screens``` di direktori ````lib``` untuk halaman registrasi.
+2. Membuat class ```RegisterPage``` yang mengextend Stateful Widget yang mengoverride method ```createState()``` yang akan return state baru untuk class tersebut dan membuat instance dari ```_RegisterPageState```.
+3. Membuat class ```_RegisterPageState```yang meng-extend ```State<RegisterPage>```.
+4. Menyimpan 3 variabel untuk username, password, dan password kedua dengan tipe ```final``` (autentikasi) meggunakan class ```TextEdittingController()```
+5. Pada method build yang di override, simpan variabel request dengan tipe ```final``` yang berisi hasil dari pemanggilan method watch untuk tipe data CookieRequest oleh objek ```BuildContext``` dari parameter method build yang akan return objek class ```Scaffold``` yang memiliki properti app bar dan body.
+6. Buatlah bagian header dengan tulisan Register dan arrow back yang akan mentriger Navigation stack untuk melakukan method pop dengan parameter objek ```BuilderContext``` dari parameter method build = appbar Scaffold.
+7. Bagian body dari scaffold merupakan class ```Center``` dengan child ```SingleChildScrollView``` dengan child ```Card``` dengan child ```Padding``` dengan child ```Column``` dengan list of Children denga tipe data Widget yang berisi class ```text``` bertuliskan kata registrasi serta class ```TextFormField``` untuk variabel username, password, dan password kedua pada bagian properti controller-nya. Lalu pada properti decorationnya, tambahkan class ```Input Decoration``` yang bisa diatur properti labelText dan hintText nya. Serta tambahkan atribut validator untuk mengecek apakah masih kosong atau tidak fieldnya.
+8. Terakhir tambahkan class ```Elevated Button``` untuk melakukan registrasi dengan menambahkan atribut onPressed secara asinkronusuntuk menghandle method post data input user ke database dalam format json.
+9. Simpan hasil response dengan method postJson dan dilakukan encoding:
+```dart
+final response = await request.postJson(
+  "http://[APP_URL_KAMU]/auth/register/",
+  jsonEncode({
+    "username": username,
+    "password1": password1,
+    "password2": password2,
+  }));
+```
+10. Jika BuildContext dari widget tree mounted dan respons dari method di views.py nya sukses, akan muncul snackbar keterangan berhasil dan Navigation stack akan push kembali ke state halaman login page.
+11. Buka proyek django di subdirektori authentication di file views.py :
+```python
+from django.contrib.auth.models import User
+import json
+...
+
+@csrf_exempt
+def register(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data['username']
+        password1 = data['password1']
+        password2 = data['password2']
+
+        # Check if the passwords match
+        if password1 != password2:
+            return JsonResponse({
+                "status": False,
+                "message": "Passwords do not match."
+            }, status=400)
+        
+        # Check if the username is already taken
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({
+                "status": False,
+                "message": "Username already exists."
+            }, status=400)
+        
+        # Create the new user
+        user = User.objects.create_user(username=username, password=password1)
+        user.save()
+        
+        return JsonResponse({
+            "username": user.username,
+            "status": 'success',
+            "message": "User created successfully!"
+        }, status=200)
+    
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Invalid request method."
+        }, status=400)
+```
+12. pada bagian routing urls.py subdirektori aplikasi authentication :
+```python
+from authentication.views import register 
+...
+path('register/', register, name='register'),
+```
+
+### Step by step Membuat halaman login pada proyek tugas Flutter
+1. Membuka ```main.dart``` pada direktori lib.
+2. Mengubah konten main.dart menjadi :
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:lodon_mart/screens/login.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Provider(
+      create: (_) {
+        CookieRequest request = CookieRequest();
+        return request;
+      },
+      child: MaterialApp(
+        title: 'Lodon Mart',
+        theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 16, 23, 40),
+            ).copyWith(
+              primary: const Color.fromARGB(255, 16, 23, 40),
+              // secondary: const Color.fromARGB(255, 22, 32, 55),
+              secondary: const Color.fromARGB(255, 25, 37, 65),
+            )),
+        home: const LoginPage(),
+      ),
+    );
+  }
+}
+```
+Hal ini akan membuat objek Provider baru yang akan membagikan instance CookieRequest dengan semua komponen yang ada di aplikasi.
+3. Buat file login.dart pada subdirektori screens.
+4. tambahkan :
+```dart
+void main() {
+  runApp(const LoginApp());
+}
+```
+lakukan untuk menjalankan fungsi main sebagai titik awal eksekusi program dart pada class ```LoginApp```
+5. class ```LoginApp``` dibuat dengan meng-extend StatelessWidget yang meng-override method build yang akan return class ```MaterialApp``` dengan judul login dan tema aplikasi dengan ```colorScheme``` untuk halaman tersebut kustomisasi dengan properti home = class ```LoginPage```
+6. Tahapan selanjutnya mirip dengan pembuatan class ```RegisterPage``` dan ```_RegisterPageState``` untuk membuat class ```LoginPage``` dan ```_LoginPageState``` namun yang diperlukan hanyalah username dan password (kalau registrasi diperlukan 2 variabel menyimpan password untuk verifikasi).
+7. Terdapat perbedaan handling pada class ```Elevated Button``` yang respon yang disimpan menunggu hasil dari method login di dari request.
+Jika berhasil logged in, akan dismpan pesan keberhasilan dan username yang login di suatu variabel. Jika BuildContext mounted, navigation stack akan push dan replace halaman / widget saat ini dengan widget / halaman homepage (main menu) (redirecting namun di replace bukan ditumpuk dalam stack) dan akan show snack bar sukses, jika tidak sukses akan show snack bar gagal. 
+8. Buka proyek django direktori aplikasi ```authentication``` d bagian views.py dan tambahkan :
+```python
+from django.contrib.auth import authenticate, login as auth_login
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def login(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            auth_login(request, user)
+            # Status login sukses.
+            return JsonResponse({
+                "username": user.username,
+                "status": True,
+                "message": "Login sukses!"
+                # Tambahkan data lainnya jika ingin mengirim data ke Flutter.
+            }, status=200)
+        else:
+            return JsonResponse({
+                "status": False,
+                "message": "Login gagal, akun dinonaktifkan."
+            }, status=401)
+
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Login gagal, periksa kembali email atau kata sandi."
+        }, status=401)
+```
+9. Atur routing di urls.py direktori authentication :
+```python
+from django.urls import path
+from authentication.views import login
+
+app_name = 'authentication'
+
+urlpatterns = [
+  ...
+  path('login/', login, name='login'),
+  ...
+]
+```
+
+## Step by step pembuatan model untuk proyek aplikasi flutter
+
+1. Aktifkan proyek django anda di localhost.
+2. Buat data product dummies.
+3. Gunakan directory link json untuk menampilkan data model yang telah dibuat dan copy data format json tersebut (salah satu data saja).
+4. Buka quickctype (website).
+5. Set up nama menjadi "Product" source type "json" dan language "dart".
+6. Paste data json pada textbox quicktype.
+7. Quick type ini akan membantu kita dalam membuat suatu model pada bahasa yang kita inginkan (kita memilih dart untuk program flutter) agar dapat membuat model objek berdasarkan source type yang diinginkan (untuk memudahkan, menggunakan format json).
+8. Jika kita suuda dapat, copy kode dart yang sudah jadi.
+9. Membuat subdirektori bernama models dan buat file baru bernama product.dart.
+10. Paste kode dart dari quicktype dan model produk sudah jadi.
+
+## STep by step Membuat halaman yang berisi daftar semua item yang terdapat pada endpoint JSON
+
+1. Membuka direktori root proyek mobile lodon mart di terminal dan masukkan command ```flutter pub add http``` untuk mebambahkan pacakage ```http```
+2. Pada file ```android/app/src/main/AndroidManifest.xml``` tambahkan :
+```dart
+<uses-permission android:name="android.permission.INTERNET" />
+```
+untuk mengizinkan akses internet ke apkikasi flutter kita.
+3. Membuat halman untuk menampilkan seluruh list produk yang di buat pada subdirektori screens di direktori lib bernama ```list_products.dart```.
+4. import beberapa file yang penting :
+```dart
+import 'package:flutter/material.dart';
+import 'package:lodon_mart/widgets/left_drawer.dart';
+import 'package:lodon_mart/models/product_entry.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+```
+5. Membuat class ```ProductEntryPage``` yang mengextend Stateful Widget yang mengoverride method ```createState()``` yang akan return state baru untuk class tersebut dan membuat instance dari ```_ProductEntryPageState```.
+6. Membuat class ```_ProductEntryPageState```yang meng-extend ```State<ProductEntryPage>```.
+7. Buatlah method bernama fetchProduct dengan parameter berupa objek ```CookieRequest``` yang akan dihandle secara asinkronus.
+8. Pertama simpan respons dari method get dari reuqest user pada url apikasi dendan endpoint ```/json/```.
+9. Buatlah List dengan tipe data Product.
+10. Iterasi tiap data json dari respons yang didapat lalu ditambahkan ke list jika bukan null.
+11. return list tersebut.
+12. Pada method build yang di override, simpan variabel request dengan tipe ```final``` yang berisi hasil dari pemanggilan method watch untuk tipe data CookieRequest oleh objek ```BuildContext``` dari parameter method build yang akan return objek class ```Scaffold``` yang memiliki properti app bar ,drawer, dan body.
+13. Isi app bar dengan text "List Products", drawer dengan class ```Leftdrawer``` yang telah dibuat di ```left_drawer.dart``` di subdirektori ```screens```, dan bagian body berupa objek class ```FutureBuilder```.
+14. Penjelasan :
+```dart
+body: FutureBuilder(
+  future: fetchMood(request),  // future: operasi asinkron
+  builder: (context, AsyncSnapshot snapshot) {  // builder untuk membangun UI berdasarkan status Future
+```
+
+```future```: Ini adalah operasi asinkron yang akan dijalankan, dalam hal ini ```fetchProduct(request)``` yang kemungkinan besar mengembalikan Future (seperti mengambil data produk).
+
+```builder```: Fungsi yang menerima dua parameter, ```context``` dan ```snapshot```, untuk membangun tampilan pengguna berdasarkan status dari ```Future```.
+
+```AsyncSnapshot``` adalah objek yang digunakan untuk memantau status dari operasi asinkron. Untuk``` snapshot.data``` digunakna untuk data yang diterima jika operasi berhasil.
+
+15. Jika isinya kosong, maka akan muncul keterangan pada suatu objek ```Column``` bertuliskan "There's no product on Lodon Mart".
+
+16. Jika ada Akan di return suatu objek class ```ListView.builder``` dengan properti ```itemCount``` sebanyak panjang data snapshot.data dan properti ```itemBuilder``` nya berupa suatu objek class ```Container``` untuk menampilkan data dari field tiap objek produk yang dibuat (nama, amount / price, dan descpription product).
+
+17. Buka file ```left_drawer.dart``` pada subdirektori widgets dan tambahkan opsi berupa objek class ```ListTile``` untuk melihat list of products yang telah dibuat dan jika dipencet maka navigation stack akan memasukkan konteks widget baru yang didefiniskan rutenya oleh ```MaterialPageRoute``` menggunakan fungsi builder dengan parameter konteks yang akan menampilkan widget / class ```ProductEntryPage``` yang sudah kita buat di atas.
+
+18. Pada file ```product_card.dart``` di subdirektori widgets, pada bagian properti ```onTap``` tambahkan kondisi bahwa jika widget yang dipencet memiliki tulisan "List of Product" maka navigation stack akan memasukkan konteks widget baru yang didefiniskan rutenya oleh ```MaterialPageRoute``` menggunakan fungsi builder dengan parameter konteks yang akan menampilkan widget / class ```ProductEntryPage``` yang sudah kita buat di atas. 
+
+## Step by step Membuat halaman detail untuk setiap item yang terdapat pada halaman daftar Item.
+
+1. Buka halaman list_products.dart di subdirektori screens.
+2. tambahkan kode berikut pada bagian kode yang return ```Listview.builder``` yang akan push konteks widget baru ke dalam navigation stack :
+```dart
+itemBuilder: (_, index) =>  GestureDetector(
+  onTap: () {
+    // Navigasi ke halaman detail produk dengan mengirimkan data produk
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailPage(product: snapshot.data![index]),
+      ),
+    );
+  },
+  child : Container(
+    ...))
+```
+3. Membuat file baru di subdirektori screens juga berana ```product_details.dart```.
+4. Membuat class ```ProductDetailPage``` yang mengextend Stateful Widget yang mengoverride method ```createState()``` yang akan return state baru untuk class tersebut dan membuat instance dari ```_ProductDetailPageState```.
+5. Membuat class ```_ProductDetailPageState```yang meng-extend ```State<ProductDetailPage>```.
+6. Pada method build yang override, return objek ```Scaffold``` dengan properti appbar (otomatis menampilkan ikon arrow back ke widget di dalan stack navigation sebelum widget saat ini dimuat jika buka parent widget) yang berisi teks tulisan "Product Details" dan di bagian properti body membuat class ```Column``` yang berisi beberapa class ```SizedBox``` untuk menampilkan tiap field dari data objek produk saat ini di halaman tersebut.
+
+## STep by step Melakukan filter pada halaman daftar item dengan hanya menampilkan item yang terasosiasi dengan pengguna yang login.
+
+1. Hal ini sudah di handle pada proyek django di mana terdapat fungsi show_json karena otomatis sudah mmemfilter produk yang dimiliki oleh user
+```python
+def show_json(request):
+    products =  Product.objects.filter(user=request.user)
+    return HttpResponse(serializers.serialize("json", products), content_type="application/json")
+```
+2. Namun perlu dipastikan juga bahwa pada method create pada flutter, produk juga diasosiasi dengan user yang bersangkutan.
+3. pada views.py direktori aplikasi main di proyek django, tambahkan :
+```python
+...
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def create_product_flutter(request):
+    if request.method == 'POST':
+
+        data = json.loads(request.body)
+        new_product = Product.objects.create(
+            user=request.user, # menghubungkan objek model produk yang dibuat dengan user yang melakukanrequest untuk pembuatan objek
+            name=data["name"],
+            price=int(data["price"]),
+            description=data["description"]
+        )
+
+        new_product.save()
+
+        return JsonResponse({"status": "success"}, status=200)
+    else:
+        return JsonResponse({"status": "error"}, status=401)
+...
+```
+4. pada urls.py aplikasi main, tambahkan routing untuk method yang baru dibuat di views.py :
+```python
+[
+  ...
+path('create-flutter/', create_product_flutter, name='create_mood_flutter'),
+...
+]
+```
+5. Pada proyek flutter di halaman``` product_entryform.dart``` tambahkan :
+```dart
+final request = context.watch<CookieRequest>();
+```
+Hubungkan halaman productentry_form.dart dengan CookieRequest
+
+6. Pada properti onpressed(), ubah menjadi asinkronus dan simpan variabel response dengan tipe ```final``` yang didapat dari method ```postJson``` milik request yang bertipe ```CookieRequest``` dengan parameter url aplikasi kita dan data berupa data format json yang di encoding menjadi dictionary String untuk key dan valuenya berisi field field dari objek produk.
+
+7. Jika widget masih berapa dai dalam widget tree dan respons status nya adalah sukses (hasil yang diberikan sebagai return method di fungsi views.py django), akan menampilkan snackbar berhasil dan akan melakukan ```showDialog()``` berisi informasi mengenai keterangan field dan konten field yang abru sajja dibuat. Serta dibuat class ```textButton``` bertuliskan "ok" yang jika dipencet maka akan dilakukan push replacement pada navigation stack untuk mengganti dengan widget baru yaitu class ```MyHomePage()``` (redirecting ke halaman utama).
+
+
+
+
