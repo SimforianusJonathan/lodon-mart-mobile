@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lodon_mart/menu.dart';
-import 'package:lodon_mart/productentry_form.dart';
+import 'package:lodon_mart/screens/list_products.dart';
+import 'package:lodon_mart/screens/menu.dart';
+import 'package:lodon_mart/screens/productentry_form.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -53,13 +54,23 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.mood),
             title: const Text('Add Product'),
-            // Bagian redirection ke ProductEntryFormPage
             onTap: () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ProductEntryFormPage(),
                   ));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.production_quantity_limits_rounded),
+            title: const Text('List Of Product'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ProductEntryPage()),
+              );
             },
           ),
         ],
