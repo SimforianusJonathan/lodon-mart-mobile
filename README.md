@@ -903,6 +903,68 @@ Hubungkan halaman productentry_form.dart dengan CookieRequest
 
 7. Jika widget masih berapa dai dalam widget tree dan respons status nya adalah sukses (hasil yang diberikan sebagai return method di fungsi views.py django), akan menampilkan snackbar berhasil dan akan melakukan ```showDialog()``` berisi informasi mengenai keterangan field dan konten field yang abru sajja dibuat. Serta dibuat class ```textButton``` bertuliskan "ok" yang jika dipencet maka akan dilakukan push replacement pada navigation stack untuk mengganti dengan widget baru yaitu class ```MyHomePage()``` (redirecting ke halaman utama).
 
+## Membuat model untuk melakukan pengambilan ataupun pengiriman data JSON? Apakah akan terjadi error jika kita tidak membuat model terlebih dahulu?
+Manfaat :
+- Struktur data JSON yang dikirim atau diterima akan memiliki format yang konsisten sesuai dengan model yang telah ditentukan. Konsistensi ini bermanfaat untuk mencegah terjadinya kesalahan dalam pemrosesan data.
+- Dengan menggunakan model, Anda dapat menetapkan aturan validasi untuk memastikan bahwa data yang dimasukkan sesuai dengan tipe atau format yang diharapkan, seperti panjang string, tipe integer, dan lainnya(Baik untuk data user maupun model objek yang dikustomiasasi oleh para pengembang).
+- Model mempermudah pemetaan antara data JSON dan objek dalam aplikasi Anda, sehingga kode menjadi lebih bersih dan mudah dibaca.
+
+Meskipun tidak selalu terjadi kesalahan jika model tidak digunakan, terdapat beberapa risiko yang dapat muncul:
+- Ketidaksesuaian Struktur Data: Jika struktur data JSON tidak sesuai dengan yang diharapkan oleh server atau klien, hal ini dapat menyebabkan kesalahan saat proses parsing atau serialisasi.
+- Data Tidak Valid: Tanpa model, tidak ada mekanisme bawaan untuk memverifikasi validitas format data atau memastikan keberadaan atribut penting, sehingga data yang tidak valid dapat terlewatkan.
+- Kompleksitas Kode: Menggunakan data JSON mentah tanpa model dapat menyebabkan kode menjadi lebih sulit dipahami, terutama jika terdapat perubahan pada API atau struktur data.
+- Kesalahan Logika: Tanpa model, pengembang perlu melakukan lebih banyak pengecekan manual di berbagai bagian kode, yang meningkatkan risiko munculnya bug dan kesalahan logika.
+
+## Fungsi dari library http yang sudah kamu implementasikan pada tugas ini
+Pada aplikasi dengan framework flutter ini, library ```http``` sehingga aplikasi mobile bisa mengirim request dan menerima respon seperti yang dilakukan pada aplikasi web :
+- Dapat melakukan pengiriman request berupa (post, get, put, delete,  patch) kepada server
+- Mendapatkan repsons dalam bentuk format data JSON atau format lainnya.
+
+## Fungsi dari CookieRequest dan jelaskan mengapa instance CookieRequest perlu untuk dibagikan ke semua komponen di aplikasi Flutter.
+CookieRequest merupakan suatu class bawaan dari pacakage ```pbp django auth```. 
+
+Fungsi :
+- Mengelola sesi pengguna dalam aplikasi Flutter (menyimpan sesu login pengguna melalui cookie), termasuk autentikasi dan pengelolaan cookies.
+- Library ini memungkinkan aplikasi melakukan permintaan HTTP yang terautentikasi tanpa perlu mengatur ulang informasi login setiap kali ada permintaan baru yang mempermudah proses pengriman data dengan autentikasi manhual
+-  CookieRequest dibagikan ke seluruh komponen aplikasi agar semua bagian dapat menggunakan sesi yang sama secara konsisten, sehingga memudahkan komunikasi dengan server serta menjaga pengalaman pengguna yang lancar (Implementasi Stateful request).
+
+Instance CookieRequest perlu diberikan kepada user agar data pengguna yang login akan telah tersimpan melalui cookie sehingga dapat diakses kembali.
+
+## Mekanisme pengiriman data mulai dari input hingga dapat ditampilkan pada Flutter.
+1. User memberkan input data lewat form di aplikasi :
+2. Data akan divalidasi dan dikirim ke server menggunakan package ```http``` atau ```CookieRequest``` dalam body http dalam format Json.
+- Server Django menerima data request melalui urls.py lalu logic diproses di views.py.
+- Backend memproses data (misalnya menyimpan atau membaca dari database).- Django mengembalikan respons dalam bentuk JSON.keberhasilan. 
+- data dari server diambil kembali menggunakan metode HTTP (seperti GET) pada Flutter, diubah menjadi objek model sesuai struktur JSON, lalu ditampilkan ke interface aplikasi menggunakan widget
+
+## Mekanisme autentikasi dari login, register, hingga logout. Mulai dari input data akun pada Flutter ke Django hingga selesainya proses autentikasi oleh Django dan tampilnya menu pada Flutter.
+
+Proses Login
+
+1. Pengisian Data: Pengguna memasukkan email dan kata sandi pada halaman login.
+2. Pengiriman Permintaan: Setelah tombol login ditekan, data akan dikirim ke endpoint login pada Django menggunakan CookieRequest.
+Pemrosesan Backend:
+3. Django memeriksa kredensial yang dimasukkan.
+Jika valid, server mengirimkan cookie autentikasi sebagai respons.
+Penyimpanan Status: Cookie autentikasi disimpan dalam CookieRequest untuk keperluan permintaan selanjutnya.
+4. Akses Menu: Jika login berhasil, menu utama aplikasi akan ditampilkan sesuai status autentikasi pengguna.
+
+Proses Registrasi
+
+1. Pengisian Data: Pengguna mengisi informasi akun, seperti nama, email, dan kata sandi.
+2. Pengiriman Permintaan: Ketika tombol register ditekan, data akan dikirim ke endpoint register pada Django melalui http atau CookieRequest.
+3. Pemrosesan Backend:
+Django menyimpan data pengguna baru ke dalam basis data.
+Django mengirimkan respons yang menandakan proses berhasil atau gagal.
+4. Notifikasi: Aplikasi Flutter menampilkan pesan keberhasilan atau kesalahan sesuai respons yang diterima, kemudian mengarahkan pengguna ke halaman login.
+
+Proses Logout
+
+Permintaan Logout: Saat tombol logout ditekan, Flutter mengirimkan
+1. permintaan ke endpoint logout pada Django menggunakan CookieRequest.
+2. Penghapusan Cookie: Django menghapus sesi autentikasi pengguna.
+3. Pembaruan Status: Aplikasi memperbarui status pengguna menjadi tidak login.
+4. Navigasi: Pengguna diarahkan kembali ke halaman login.
 
 
 
